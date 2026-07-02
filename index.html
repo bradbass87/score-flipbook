@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>score-flipbook demo</title>
+  <style>
+    body { margin: 0; padding: 40px 16px; background: #fafafa; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    h1 { text-align: center; font-weight: 600; font-size: 22px; color: #333; }
+    p.note { text-align: center; color: #888; font-size: 13px; max-width: 640px; margin: 6px auto 32px; }
+  </style>
+</head>
+<body>
+  <h1>score-flipbook demo</h1>
+  <p class="note">This page simulates a Squarespace Code Block embed. The two lines below the
+  scripts are all a code block needs.</p>
+
+  <script src="flipbook.js" defer></script>
+  <!-- Image mode (preferred): pre-converted page JPEGs, no CORS requirements. -->
+  <div class="score-flipbook" data-pages="scores/suite-for-winds/page-{nn}.jpg" data-count="16"></div>
+
+  <h1>PDF mode</h1>
+  <!-- Sample: Bach, WTK Book I Prelude 1 (public domain, via Mutopia).
+       PDF mode needs a CORS-enabled host (same-origin here). -->
+  <div class="score-flipbook" data-pdf="scores/sample-score.pdf"></div>
+</body>
+</html>

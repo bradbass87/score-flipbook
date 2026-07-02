@@ -1,0 +1,3 @@
+scores/*.pdf
+!scores/sample-score.pdf
+.DS_Store
