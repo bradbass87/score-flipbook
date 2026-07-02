@@ -49,7 +49,6 @@
 
   var CSS = [
     '.sfb-wrap{position:relative;width:100%;max-width:1100px;margin:0 auto;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-user-select:none;user-select:none}',
-    '.sfb-wrap:fullscreen{max-width:none;background:#1c1c1e;display:flex;flex-direction:column;justify-content:center;padding:24px 0}',
     '.sfb-stage{position:relative;padding:0 44px}',
     '.sfb-book{margin:0 auto;touch-action:pan-y}',
     '.sfb-book .stf__parent{margin:0 auto}',
@@ -63,10 +62,6 @@
     '.sfb-arrow:hover{background:rgba(30,30,30,.8)}',
     '.sfb-arrow[disabled]{opacity:.25;cursor:default}',
     '.sfb-prev{left:0}.sfb-next{right:0}',
-    '.sfb-bar{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:10px;color:#666;font-size:13px}',
-    '.sfb-wrap:fullscreen .sfb-bar{color:#ccc}',
-    '.sfb-fs{border:none;background:none;cursor:pointer;color:inherit;font-size:15px;padding:2px 6px;line-height:1}',
-    '.sfb-fs:hover{color:#000}.sfb-wrap:fullscreen .sfb-fs:hover{color:#fff}',
     '.sfb-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:220px;color:#777;font-size:13px}',
     '.sfb-spinner{width:30px;height:30px;border:3px solid #ddd;border-top-color:#777;border-radius:50%;animation:sfb-spin .8s linear infinite}',
     '@keyframes sfb-spin{to{transform:rotate(360deg)}}',
@@ -107,10 +102,6 @@
     prevBtn.type = nextBtn.type = 'button';
     prevBtn.setAttribute('aria-label', 'Previous page');
     nextBtn.setAttribute('aria-label', 'Next page');
-    var bar = el('div', 'sfb-bar');
-    var counter = el('span', 'sfb-counter', '');
-    var fsBtn = el('button', 'sfb-fs', '&#x26F6; Fullscreen');
-    fsBtn.type = 'button';
     var loading = el('div', 'sfb-loading');
     loading.appendChild(el('div', 'sfb-spinner'));
     var loadingText = el('div', null, 'Loading score…');
@@ -119,10 +110,7 @@
     stage.appendChild(prevBtn);
     stage.appendChild(book);
     stage.appendChild(nextBtn);
-    bar.appendChild(counter);
-    bar.appendChild(fsBtn);
     wrap.appendChild(stage);
-    wrap.appendChild(bar);
     book.appendChild(loading);
     container.appendChild(wrap);
 
@@ -140,7 +128,7 @@
           var img = res[1];
           book.innerHTML = '';
           buildBook({ images: urls, pageWidth: img.naturalWidth, pageHeight: img.naturalHeight },
-            { wrap: wrap, book: book, prevBtn: prevBtn, nextBtn: nextBtn, counter: counter, fsBtn: fsBtn, maxHeight: maxHeight });
+            { wrap: wrap, book: book, prevBtn: prevBtn, nextBtn: nextBtn, maxHeight: maxHeight });
         })
         .catch(function (err) { showError(book, err); });
       return;
@@ -164,7 +152,7 @@
       })
       .then(function (result) {
         book.innerHTML = '';
-        buildBook(result, { wrap: wrap, book: book, prevBtn: prevBtn, nextBtn: nextBtn, counter: counter, fsBtn: fsBtn, maxHeight: maxHeight });
+        buildBook(result, { wrap: wrap, book: book, prevBtn: prevBtn, nextBtn: nextBtn, maxHeight: maxHeight });
       })
       .catch(function (err) { showError(book, err); });
   }
@@ -267,14 +255,6 @@
       // flip events carry the target index; getCurrentPageIndex is stale
       // while a flip animation is still running
       if (typeof idx !== 'number') idx = pageFlip.getCurrentPageIndex();
-      var orientation = pageFlip.getOrientation();
-      var label;
-      if (orientation === 'landscape' && idx > 0 && idx < total - 1) {
-        label = 'Pages ' + (idx + 1) + '–' + Math.min(idx + 2, total) + ' of ' + total;
-      } else {
-        label = 'Page ' + (idx + 1) + ' of ' + total;
-      }
-      ui.counter.textContent = label;
       ui.prevBtn.disabled = idx <= 0;
       ui.nextBtn.disabled = idx >= total - 1;
     }
@@ -291,20 +271,6 @@
       if (e.key === 'ArrowRight') { pageFlip.flipNext(); e.preventDefault(); }
     });
 
-    ui.fsBtn.addEventListener('click', function () {
-      if (document.fullscreenElement === ui.wrap) {
-        document.exitFullscreen();
-      } else if (ui.wrap.requestFullscreen) {
-        ui.wrap.requestFullscreen();
-      } else if (ui.wrap.webkitRequestFullscreen) { // older Safari
-        ui.wrap.webkitRequestFullscreen();
-      }
-    });
-    document.addEventListener('fullscreenchange', function () {
-      ui.fsBtn.innerHTML = document.fullscreenElement === ui.wrap ? '&#x2716; Exit fullscreen' : '&#x26F6; Fullscreen';
-      // stretch mode recalculates on window resize; nudge it after the transition
-      setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 250);
-    });
   }
 
   function initAll() {
