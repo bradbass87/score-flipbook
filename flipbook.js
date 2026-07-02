@@ -53,7 +53,12 @@
     '.sfb-stage{position:relative;padding:0 44px}',
     '.sfb-book{margin:0 auto;touch-action:pan-y}',
     '.sfb-book .stf__parent{margin:0 auto}',
-    '.sfb-book canvas,.sfb-book img{box-shadow:0 3px 14px rgba(0,0,0,.28);background:#fff}',
+    '.sfb-book .stf__block{box-shadow:0 3px 14px rgba(0,0,0,.28)}',
+    // !important guards: host-site theme CSS (e.g. Squarespace's img/canvas
+    // max-width rules) must not resize book internals — that squeezes pages.
+    '.sfb-page{background:#fff;overflow:hidden}',
+    '.sfb-page img{display:block;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;object-fit:contain;-webkit-user-drag:none}',
+    '.sfb-book .stf__wrapper,.sfb-book .stf__block,.sfb-book .stf__item{max-width:none!important;max-height:none!important}',
     '.sfb-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;background:rgba(30,30,30,.55);color:#fff;font-size:17px;line-height:36px;text-align:center;padding:0;transition:background .15s,opacity .15s}',
     '.sfb-arrow:hover{background:rgba(30,30,30,.8)}',
     '.sfb-arrow[disabled]{opacity:.25;cursor:default}',
@@ -229,6 +234,17 @@
     var baseH = Math.min(ui.maxHeight, 640);
     var baseW = Math.round(baseH / ratio);
 
+    // HTML mode: each page is a real <img> scaled by the browser, so pages
+    // stay sharp on HiDPI displays (canvas mode ignores devicePixelRatio).
+    var pages = result.images.map(function (src, i) {
+      var page = el('div', 'sfb-page');
+      var img = document.createElement('img');
+      img.alt = 'Page ' + (i + 1);
+      img.src = src;
+      page.appendChild(img);
+      return page;
+    });
+
     var pageFlip = new window.St.PageFlip(ui.book, {
       width: baseW,
       height: baseH,
@@ -243,11 +259,14 @@
       showCover: true,
       mobileScrollSupport: true
     });
-    pageFlip.loadFromImages(result.images);
+    pageFlip.loadFromHTML(pages);
+    ui.wrap.sfbPageFlip = pageFlip; // debug/scripting handle
 
     var total = result.images.length;
-    function updateUi() {
-      var idx = pageFlip.getCurrentPageIndex();
+    function updateUi(idx) {
+      // flip events carry the target index; getCurrentPageIndex is stale
+      // while a flip animation is still running
+      if (typeof idx !== 'number') idx = pageFlip.getCurrentPageIndex();
       var orientation = pageFlip.getOrientation();
       var label;
       if (orientation === 'landscape' && idx > 0 && idx < total - 1) {
@@ -259,8 +278,8 @@
       ui.prevBtn.disabled = idx <= 0;
       ui.nextBtn.disabled = idx >= total - 1;
     }
-    pageFlip.on('flip', updateUi);
-    pageFlip.on('changeOrientation', updateUi);
+    pageFlip.on('flip', function (e) { updateUi(e.data); });
+    pageFlip.on('changeOrientation', function () { updateUi(); });
     updateUi();
 
     ui.prevBtn.addEventListener('click', function () { pageFlip.flipPrev(); });
